@@ -9,7 +9,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { CoffeeFlavour, CoffeeCategory, COFFEE_SIZES } from '../../models/coffee.models';
 import { addIcons } from 'ionicons';
-import { star, logOut, cafe } from 'ionicons/icons';
+import { star, logOut, cafe, refresh, add, createOutline, trashOutline } from 'ionicons/icons';
+import { AlertController } from '@ionic/angular';
 
 /**
  * Flavours page component for displaying coffee flavour options
@@ -100,9 +101,10 @@ export class FlavoursPage implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertController: AlertController
   ) {
-    addIcons({ star, logOut, cafe });
+    addIcons({ star, logOut, cafe, refresh, add, createOutline, trashOutline });
   }
 
   ngOnInit() {
@@ -165,5 +167,31 @@ export class FlavoursPage implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigateByUrl('/login', { replaceUrl: true });
+  }
+
+  async onSync(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Sync',
+      message: 'Syncing all application data... (demo)',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
+
+  async onAdd(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Add Flavour',
+      message: 'This would open an add flavour flow. (demo)',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
+
+  editFlavour(_: CoffeeFlavour): void {
+    // demo handler
+  }
+
+  deleteFlavour(_: CoffeeFlavour): void {
+    // demo handler
   }
 }

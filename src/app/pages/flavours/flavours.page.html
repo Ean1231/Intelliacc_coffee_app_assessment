@@ -1,15 +1,18 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      <ion-icon name="cafe"></ion-icon>
-      Coffee Flavours
-    </ion-title>
+  <ion-toolbar class="toolbar-brown">
+    <ion-buttons slot="start">
+      <ion-button class="circle-btn" fill="clear" (click)="onSync()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>COFFEE FLAVOURS</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="logout()" fill="clear">
-        <ion-icon name="log-out"></ion-icon>
+      <ion-button class="circle-btn" fill="clear" (click)="onAdd()">
+        <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <ion-toolbar class="toolbar-shadow"></ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -19,81 +22,39 @@
     </ion-toolbar>
   </ion-header>
 
-  <div class="page-content">
-    <!-- Category Filter -->
-    <div class="category-filter">
-      <ion-chip 
-        *ngFor="let category of categories" 
-        [color]="selectedCategory === category ? 'primary' : 'medium'"
-        (click)="selectCategory(category)"
-        [class.selected]="selectedCategory === category">
-        {{ formatCategoryName(category) }}
-      </ion-chip>
+  <div class="flavours-list">
+    <div class="flavour-card" *ngFor="let flavour of availableFlavours" (click)="selectCoffee(flavour)">
+      <div class="flavour-left">
+        <div class="flavour-name">{{ flavour.name | uppercase }}</div>
+        <div class="flavour-code">{{ flavour.id }}</div>
+        <div class="flavour-actions">
+          <button class="action-btn" (click)="editFlavour(flavour); $event.stopPropagation()">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+          <button class="action-btn" (click)="deleteFlavour(flavour); $event.stopPropagation()">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+      <div class="flavour-right">
+        <img src="assets/images/Coffee.png" alt="Coffee" />
+      </div>
     </div>
 
-    <!-- Coffee Grid -->
-    <ion-grid>
-      <ion-row>
-        <ion-col size="12" size-md="6" size-lg="4" *ngFor="let flavour of availableFlavours">
-          <ion-card [class.unavailable]="!flavour.available" (click)="selectCoffee(flavour)">
-            <ion-card-header>
-              <ion-card-title>
-                {{ flavour.name }}
-                <ion-badge [color]="flavour.available ? 'success' : 'medium'" slot="end">
-                  {{ flavour.available ? 'Available' : 'Sold Out' }}
-                </ion-badge>
-              </ion-card-title>
-            </ion-card-header>
-
-            <ion-card-content>
-              <p class="description">{{ flavour.description }}</p>
-              
-              <div class="coffee-details">
-                <div class="detail-row">
-                  <span class="label">Origin:</span>
-                  <span class="value">{{ flavour.origin }}</span>
-                </div>
-                
-                <div class="detail-row">
-                  <span class="label">Roast:</span>
-                  <span class="value">{{ flavour.roastLevel | titlecase }}</span>
-                </div>
-                
-                <div class="detail-row">
-                  <span class="label">Intensity:</span>
-                  <div class="stars">
-                    <ion-icon 
-                      *ngFor="let filled of getIntensityStars(flavour.intensity)" 
-                      name="star" 
-                      [class.filled]="filled">
-                    </ion-icon>
-                  </div>
-                </div>
-                
-                <div class="detail-row price-row">
-                  <span class="label">Price:</span>
-                  <span class="price">${{ flavour.price.toFixed(2) }}</span>
-                </div>
-              </div>
-
-              <ion-button 
-                expand="block" 
-                [disabled]="!flavour.available"
-                [color]="flavour.available ? 'primary' : 'medium'"
-                class="select-button">
-                {{ flavour.available ? 'Select Coffee' : 'Unavailable' }}
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-
-    <!-- Empty state -->
     <div *ngIf="availableFlavours.length === 0" class="empty-state">
       <ion-icon name="cafe" size="large"></ion-icon>
       <h2>No coffee available</h2>
-      <p>Sorry, no coffee flavours are available in this category at the moment.</p>
+      <p>Sorry, no coffee flavours are available at the moment.</p>
+    </div>
+  </div>
+
+  <div class="dev-instructions">
+    <div>
+      <span class="muted">DEV Instructions:</span>
+      The sync icon in the header will sync all application data. Click to see alert controller...
+    </div>
+    <div class="next-step">
+      <span class="muted">NEXT STEP:</span> Click on the add flavour icon in the header
     </div>
   </div>
 </ion-content>
