@@ -16,6 +16,7 @@
 </ion-header>
 
 <ion-content class="manage-content" [fullscreen]="true">
+  <app-loading-overlay></app-loading-overlay>
   <div class="form-container" [formGroup]="form">
     <div class="field">
       <label>BARCODE</label>
@@ -33,22 +34,26 @@
     <div class="field">
       <label>FLAVOUR NAME</label>
       <ion-input formControlName="name" placeholder=""></ion-input>
+      <div class="error" *ngIf="form.controls.name.touched && form.controls.name.invalid">Name is required</div>
     </div>
 
     <div class="row">
       <div class="field">
         <label>PRICE PER BOX</label>
         <ion-input formControlName="pricePerBox" type="number"></ion-input>
+        <div class="error" *ngIf="form.controls.pricePerBox.invalid && form.controls.pricePerBox.touched">Enter a valid number</div>
       </div>
       <div class="field">
         <label>PRICE PER POD</label>
         <ion-input formControlName="pricePerPod" type="number"></ion-input>
+        <div class="error" *ngIf="form.controls.pricePerPod.invalid && form.controls.pricePerPod.touched">Enter a valid number</div>
       </div>
     </div>
 
     <div class="field">
       <label>PODS PER BOX</label>
       <ion-input formControlName="podsPerBox" type="number"></ion-input>
+      <div class="error" *ngIf="form.controls.podsPerBox.invalid && form.controls.podsPerBox.touched">Enter a valid number</div>
     </div>
   </div>
 

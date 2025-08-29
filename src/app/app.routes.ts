@@ -17,12 +17,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/flavours/flavours.page').then((m) => m.FlavoursPage)
   },
   {
-    path: 'manage-flavours/manage-flavours',
+    path: 'manage-flavours',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/manage-flavours/manage-flavour.page').then((m) => m.ManageFlavourPage)
   },
   {
-    path: 'manage-flavours/manage-flavours/:id',
+    path: 'manage-flavours/:id',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/manage-flavours/manage-flavour.page').then((m) => m.ManageFlavourPage)
   },

@@ -1,14 +1,16 @@
-import { Component, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { BarcodeService } from '../../services/barcode.service';
+import { ImageService } from '../../services/image.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton, IonIcon, IonInput, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton, IonIcon, IonInput } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack, scan, camera, add } from 'ionicons/icons';
+import { arrowBack, scan, camera, add, image as imageIcon } from 'ionicons/icons';
 import { LocalDbService } from '../../services/local-db.service';
 import { FlavourRecord } from '../../models/coffee.models';
-import { UiStateService } from '../../services/ui-state/ui-state.service';
-import { ErrorFactory } from '../../models/error.models';
+// Removed unused UI state imports to keep the component focused
 import { ActionSheetController } from '@ionic/angular';
 // Optional camera import (only available when Capacitor Camera is installed)
 // Use dynamic reference to avoid type errors when not installed
@@ -21,7 +23,7 @@ type CameraSource = 'prompt' | 'camera' | 'photos' | undefined;
   styleUrls: ['./manage-flavour.page.scss'],
   providers: [],
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton, IonIcon, IonInput, IonItem, IonLabel
+    CommonModule, FormsModule, ReactiveFormsModule, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton, IonIcon, IonInput, LoadingOverlayComponent
   ]
 })
 export class ManageFlavourPage {
@@ -40,48 +42,20 @@ export class ManageFlavourPage {
     private db: LocalDbService,
     private router: Router,
     private route: ActivatedRoute,
-    private uiState: UiStateService,
     private actionSheet: ActionSheetController,
-    private zone: NgZone
+    private barcode: BarcodeService,
+    private image: ImageService
   ) {
-    addIcons({ arrowBack, scan, camera, add });
+    addIcons({ arrowBack, scan, camera, add, image: imageIcon });
   }
 
   goBack(): void {
-    this.router.navigateByUrl('/flavours');
+    this.router.navigate(['flavours']);
   }
 
   async onScan(): Promise<void> {
-    this.uiState.startLoading('Scanning barcode');
-    try {
-      const anyWindow = window as any;
-      const plugin = anyWindow?.cordova?.plugins?.barcodeScanner;
-      if (plugin && typeof plugin.scan === 'function') {
-        await new Promise<void>((resolve) => {
-          plugin.scan((result: any) => {
-            this.zone.run(() => {
-              if (!result.cancelled && result.text) {
-                this.form.patchValue({ barcode: result.text });
-              }
-              resolve();
-            });
-          }, (err: any) => {
-            console.error('Barcode scan failed', err);
-            this.uiState.addError(ErrorFactory.createApiError('unknown', 'Barcode scan failed'));
-            resolve();
-          });
-        });
-        return;
-      }
-      // No plugin available -> show concise error and fall back to manual entry
-      this.uiState.addError(ErrorFactory.createApiError('unknown', 'Barcode scanner not available on web. Using manual input.'));
-      const manual = prompt('Enter barcode (fallback):', '');
-      if (manual !== null) {
-        this.zone.run(() => this.form.patchValue({ barcode: manual }));
-      }
-    } finally {
-      this.uiState.stopLoading();
-    }
+    const code = await this.barcode.scan();
+    if (code) this.form.patchValue({ barcode: code });
   }
 
   async onPickPhoto(): Promise<void> {
@@ -97,78 +71,37 @@ export class ManageFlavourPage {
   }
 
   private async capturePhoto(source: CameraSource): Promise<void> {
-    this.uiState.startLoading('Capturing photo');
-    try {
-      const anyWindow = window as any;
-      const capacitorCamera = anyWindow?.Capacitor?.Plugins?.Camera || anyWindow?.Camera;
-      if (capacitorCamera && typeof capacitorCamera.getPhoto === 'function') {
-        const photo = await capacitorCamera.getPhoto({
-          source,
-          resultType: 'dataUrl',
-          quality: 70
-        });
-        const fileName = photo?.path || photo?.webPath || 'photo.jpg';
-        const dataUrl: string | undefined = photo?.dataUrl || (photo?.base64String ? `data:image/jpeg;base64,${photo.base64String}` : (photo?.webPath || photo?.path));
-        this.zone.run(() => {
-          if (dataUrl) {
-            this.photoPreview = dataUrl;
-          }
-          this.form.patchValue({ photoName: fileName });
-        });
-      } else {
-        // Fallback: open file dialog for web
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = () => {
-          const file = input.files?.[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              this.zone.run(() => {
-                this.photoPreview = String(reader.result);
-                this.form.patchValue({ photoName: file.name });
-              });
-            };
-            reader.readAsDataURL(file);
-          }
-        };
-        input.click();
-      }
-    } catch (err) {
-      console.error('Photo capture failed', err);
-      this.uiState.addError(ErrorFactory.createApiError('unknown', 'Photo capture failed'));
-    } finally {
-      this.uiState.stopLoading();
+    const result = await this.image.pick((source as any) === 'camera' ? 'camera' : 'photos');
+    if (result) {
+      this.photoPreview = result.dataUrl;
+      this.form.patchValue({ photoName: result.fileName });
     }
+  }
+
+  private buildPayload(value: Omit<FlavourRecord, 'id'>): Omit<FlavourRecord, 'id'> & { photoData?: string } {
+    return {
+      barcode: value.barcode || '',
+      name: value.name || '',
+      pricePerBox: Number(value.pricePerBox) || 0,
+      pricePerPod: Number(value.pricePerPod) || 0,
+      podsPerBox: Number(value.podsPerBox) || 0,
+      photoName: value.photoName || undefined,
+      photoData: this.photoPreview
+    };
   }
 
   onSave(): void {
     if (this.form.invalid) return;
     const value = this.form.value as Omit<FlavourRecord, 'id'>;
     const id = this.route.snapshot.paramMap.get('id');
+    const payload = this.buildPayload(value);
+
     if (id) {
-      this.db.updateFlavour(id, {
-        barcode: value.barcode || '',
-        name: value.name || '',
-        pricePerBox: Number(value.pricePerBox) || 0,
-        pricePerPod: Number(value.pricePerPod) || 0,
-        podsPerBox: Number(value.podsPerBox) || 0,
-        photoName: value.photoName || undefined,
-        photoData: this.photoPreview
-      });
+      this.db.updateFlavour(id, payload);
     } else {
-      this.db.addFlavour({
-        barcode: value.barcode || '',
-        name: value.name || '',
-        pricePerBox: Number(value.pricePerBox) || 0,
-        pricePerPod: Number(value.pricePerPod) || 0,
-        podsPerBox: Number(value.podsPerBox) || 0,
-        photoName: value.photoName || undefined,
-        photoData: this.photoPreview
-      });
+      this.db.addFlavour(payload);
     }
-    this.router.navigateByUrl('/flavours');
+    this.router.navigate(['flavours']);
   }
 
   ngOnInit(): void {

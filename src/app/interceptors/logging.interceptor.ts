@@ -1,8 +1,7 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpEventType } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { LoggerService } from '../services/logger/logger.service';
 
 /**
@@ -53,7 +52,7 @@ export const loggingInterceptor: HttpInterceptorFn = (
   return next(reqWithId).pipe(
     tap({
       next: (event) => {
-        if (event.type === 4) { // HttpEventType.Response
+        if (event.type === HttpEventType.Response) {
           const duration = Date.now() - startTime;
           const response = event as any;
           

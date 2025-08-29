@@ -1,14 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader, 
-  IonCardTitle, IonCardContent, IonButton, IonIcon, IonBadge, IonGrid,
-  IonRow, IonCol, IonChip, IonButtons, IonBackButton
+  IonCardTitle, IonCardContent, IonButton, IonIcon, IonBadge, IonButtons
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { addIcons } from 'ionicons';
-import { star, logOut, cafe, refresh, add, createOutline, trashOutline } from 'ionicons/icons';
+import { cafe, refresh, add, createOutline, trashOutline } from 'ionicons/icons';
 import { AlertController } from '@ionic/angular';
 import { LocalDbService } from '../../services/local-db.service';
 import { FlavourRecord } from '../../models/coffee.models';
@@ -22,12 +21,10 @@ import { FlavourRecord } from '../../models/coffee.models';
   styleUrls: ['./flavours.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonHeader, IonTitle, IonToolbar, IonCard, 
-    IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon, 
-    IonBadge, IonGrid, IonRow, IonCol, IonChip, IonButtons
+    CommonModule, IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonIcon, IonButtons
   ]
 })
-export class FlavoursPage implements OnInit {
+export class FlavoursPage {
   dbFlavours: FlavourRecord[] = [];
 
   constructor(
@@ -36,21 +33,23 @@ export class FlavoursPage implements OnInit {
     private alertController: AlertController,
     private db: LocalDbService
   ) {
-    addIcons({ star, logOut, cafe, refresh, add, createOutline, trashOutline });
+    addIcons({ cafe, refresh, add, createOutline, trashOutline });
   }
-
-  ngOnInit() {}
 
   ionViewWillEnter() {
     this.dbFlavours = this.db.getFlavours();
   }
 
-  /**
-   * Handle coffee selection
-   */
-  selectCoffee(_flavour: FlavourRecord): void {
-    // Reserved for future flow (e.g., details page)
+  trackByFlavourId(_index: number, item: FlavourRecord): string {
+    return item.id;
   }
+
+  /**
+   * Handle coffee selection (reserved for future use)
+   */
+  selectCoffee(_flavour: FlavourRecord): void {}
+
+
 
   /**
    * Logout user
@@ -70,17 +69,26 @@ export class FlavoursPage implements OnInit {
   }
 
   async onAdd(): Promise<void> {
-    this.router.navigateByUrl('/manage-flavours/manage-flavours');
+    this.router.navigate(['manage-flavours']);
   }
 
   editFlavour(flavour: FlavourRecord): void {
-    this.router.navigateByUrl(`/manage-flavours/manage-flavours/${flavour.id}`);
+    this.router.navigate(['manage-flavours', flavour.id]);
   }
 
-  deleteFlavour(flavour: FlavourRecord): void {
-    if (this.dbFlavours.find(f => f.id === flavour.id)) {
-      this.db.deleteFlavour(flavour.id);
-      this.dbFlavours = this.db.getFlavours();
-    }
+  async deleteFlavour(flavour: FlavourRecord): Promise<void> {
+    if (!this.dbFlavours.find(f => f.id === flavour.id)) return;
+    const alert = await this.alertController.create({
+      header: 'Delete flavour',
+      message: `Are you sure you want to delete "${flavour.name}"?`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Delete', role: 'destructive', handler: () => {
+          this.db.deleteFlavour(flavour.id);
+          this.dbFlavours = this.db.getFlavours();
+        }}
+      ]
+    });
+    await alert.present();
   }
 }

@@ -23,7 +23,7 @@
   </ion-header>
 
   <div class="flavours-list">
-    <div class="flavour-card" *ngFor="let flavour of dbFlavours" (click)="selectCoffee(flavour)">
+    <div class="flavour-card" *ngFor="let flavour of dbFlavours; trackBy: trackByFlavourId" (click)="selectCoffee(flavour)">
       <div class="flavour-left">
         <div class="flavour-name">{{ flavour.name | uppercase }}</div>
         <div class="flavour-code">{{ flavour.barcode }}</div>

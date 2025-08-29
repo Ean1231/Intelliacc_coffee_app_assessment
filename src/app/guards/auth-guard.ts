@@ -9,12 +9,9 @@ import { AuthService } from '../services/auth/auth.service';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  
-  if (auth.isLoggedInSync) {
-    return true;
-  }
-  
-  // Redirect to login if not authenticated
-  router.navigateByUrl('/login');
-  return false;
+
+  if (auth.isLoggedInSync) return true;
+
+  // Return UrlTree to redirect without side effects
+  return router.createUrlTree(['/login']);
 };

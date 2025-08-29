@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { UiStateService } from '../services/ui-state/ui-state.service';
 import { ErrorFactory } from '../models/error.models';
 import { environment } from '../../environments/environment';
@@ -16,7 +16,7 @@ import { environment } from '../../environments/environment';
  * Features:
  * - Global error catching and transformation
  * - Integration with UiStateService for error display
- * - Automatic retry for specific error types
+ * - Structured error logging
  * - Structured error logging
  * 
  * @example
