@@ -1,0 +1,11 @@
+{
+  "/coffee/*": {
+    "target": "https://skynot.intelliacc.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/coffee": "/ws_IntelliCoffee"
+    }
+  }
+}

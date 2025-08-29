@@ -1,0 +1,40 @@
+<ion-content class="login-bg" [fullscreen]="true">
+  <div class="wrap">
+    <div class="loading-overlay" *ngIf="(loadingState$ | async)?.isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p *ngIf="(loadingState$ | async)?.operation">{{ (loadingState$ | async)?.operation }}</p>
+    </div>
+
+    <!-- Error Display -->
+    <div class="error-container" *ngIf="(errors$ | async)?.length">
+      <div class="error-message" *ngFor="let error of (errors$ | async); let i = index">
+        <ion-icon name="alert-circle" color="danger"></ion-icon>
+        <span>{{ error.message }}</span>
+        <ion-icon name="close" (click)="dismissError(i)" class="close-btn"></ion-icon>
+      </div>
+    </div>
+
+    <img src="/assets/images/Coffee.png" class="logo" alt="Coffee" />
+
+    <h1 class="title">LOGIN</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <div class="field">
+        <label>USERNAME</label>
+        <input type="text" formControlName="username" autocomplete="username" />
+      </div>
+
+      <div class="field">
+        <label>PASSWORD</label>
+        <input [type]="show ? 'text' : 'password'" formControlName="password" autocomplete="current-password" />
+        <ion-icon [name]="show ? 'eye-off-outline' : 'eye-outline'" (click)="show = !show" class="eye-icon"></ion-icon>
+      </div>
+
+      <button class="arrow-btn" type="submit"  [disabled]="form.invalid || (loadingState$ | async)?.isLoading">
+        <img src="assets/images/Login_button.png" alt="Go" />
+      </button>
+      
+  
+    </form>
+  </div>
+</ion-content>

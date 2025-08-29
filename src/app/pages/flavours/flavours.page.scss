@@ -1,0 +1,148 @@
+.page-content {
+  padding: 16px;
+}
+
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 0 4px;
+  
+  ion-chip {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.selected {
+      transform: scale(1.05);
+    }
+    
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+}
+
+ion-card {
+  margin: 8px 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  &.unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+ion-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.description {
+  color: var(--ion-color-medium);
+  font-style: italic;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.coffee-details {
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  
+  &.price-row {
+    border-top: 1px solid var(--ion-color-light);
+    padding-top: 8px;
+    margin-top: 12px;
+  }
+}
+
+.label {
+  font-weight: 500;
+  color: var(--ion-color-dark);
+}
+
+.value {
+  color: var(--ion-color-medium);
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  
+  ion-icon {
+    font-size: 16px;
+    color: var(--ion-color-light);
+    
+    &.filled {
+      color: var(--ion-color-warning);
+    }
+  }
+}
+
+.select-button {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ion-color-medium);
+  
+  ion-icon {
+    margin-bottom: 16px;
+    color: var(--ion-color-light);
+  }
+  
+  h2 {
+    margin: 16px 0 8px 0;
+    color: var(--ion-color-dark);
+  }
+  
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .category-filter {
+    justify-content: center;
+  }
+  
+  .detail-row {
+    font-size: 14px;
+  }
+  
+  .price {
+    font-size: 16px;
+  }
+}
