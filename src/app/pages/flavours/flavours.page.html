@@ -23,10 +23,10 @@
   </ion-header>
 
   <div class="flavours-list">
-    <div class="flavour-card" *ngFor="let flavour of availableFlavours" (click)="selectCoffee(flavour)">
+    <div class="flavour-card" *ngFor="let flavour of dbFlavours" (click)="selectCoffee(flavour)">
       <div class="flavour-left">
         <div class="flavour-name">{{ flavour.name | uppercase }}</div>
-        <div class="flavour-code">{{ flavour.id }}</div>
+        <div class="flavour-code">{{ flavour.barcode }}</div>
         <div class="flavour-actions">
           <button class="action-btn" (click)="editFlavour(flavour); $event.stopPropagation()">
             <ion-icon name="create-outline"></ion-icon>
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div *ngIf="availableFlavours.length === 0" class="empty-state">
+    <div *ngIf="dbFlavours.length === 0" class="empty-state">
       <ion-icon name="cafe" size="large"></ion-icon>
       <h2>No coffee available</h2>
       <p>Sorry, no coffee flavours are available at the moment.</p>

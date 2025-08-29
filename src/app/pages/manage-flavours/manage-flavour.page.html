@@ -1,0 +1,63 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar-brown">
+    <ion-buttons slot="start">
+      <ion-button class="circle-btn" fill="clear" routerLink="/flavours">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>MANAGE FLAVOURS</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="circle-btn" fill="clear" (click)="onScan()">
+        <ion-icon name="scan"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="toolbar-shadow"></ion-toolbar>
+</ion-header>
+
+<ion-content class="manage-content" [fullscreen]="true">
+  <div class="form-container" [formGroup]="form">
+    <div class="field">
+      <label>BARCODE</label>
+      <div class="barcode-row">
+        <ion-input formControlName="barcode" placeholder=""></ion-input>
+        <button class="camera-btn" (click)="onPickPhoto()">
+          <ion-icon name="camera"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>FLAVOUR NAME</label>
+      <ion-input formControlName="name" placeholder=""></ion-input>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>PRICE PER BOX</label>
+        <ion-input formControlName="pricePerBox" type="number"></ion-input>
+      </div>
+      <div class="field">
+        <label>PRICE PER POD</label>
+        <ion-input formControlName="pricePerPod" type="number"></ion-input>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>PODS PER BOX</label>
+      <ion-input formControlName="podsPerBox" type="number"></ion-input>
+    </div>
+  </div>
+
+  <div class="dev-instructions">
+    <span class="muted">DEV Instructions:</span> Click on the scan barcode icon in the header …
+  </div>
+
+  <div class="save-strip" slot="fixed">
+    <button class="save-btn" (click)="onSave()">
+      <ion-icon name="add"></ion-icon>
+    </button>
+  </div>
+</ion-content>
+
+

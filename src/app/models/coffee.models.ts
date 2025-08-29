@@ -33,3 +33,16 @@ export const COFFEE_SIZES: Record<CoffeeSize, { name: string; multiplier: number
   medium: { name: 'Medium (12oz)', multiplier: 1.3 },
   large: { name: 'Large (16oz)', multiplier: 1.6 }
 };
+
+/**
+ * Local DB entity for flavours used in CoffeeStock database
+ */
+export interface FlavourRecord {
+  id: string; // GUID/UUID string
+  barcode: string;
+  name: string;
+  pricePerBox: number;
+  pricePerPod: number;
+  podsPerBox: number;
+  photoName?: string;
+}

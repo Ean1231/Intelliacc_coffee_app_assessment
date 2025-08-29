@@ -16,4 +16,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/flavours/flavours.page').then((m) => m.FlavoursPage)
   },
+  {
+    path: 'manage-flavours/manage-flavours',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/manage-flavours/manage-flavour.page').then((m) => m.ManageFlavourPage)
+  },
 ];

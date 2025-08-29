@@ -7,10 +7,11 @@ import {
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
-import { CoffeeFlavour, CoffeeCategory, COFFEE_SIZES } from '../../models/coffee.models';
 import { addIcons } from 'ionicons';
 import { star, logOut, cafe, refresh, add, createOutline, trashOutline } from 'ionicons/icons';
 import { AlertController } from '@ionic/angular';
+import { LocalDbService } from '../../services/local-db.service';
+import { FlavourRecord } from '../../models/coffee.models';
 
 /**
  * Flavours page component for displaying coffee flavour options
@@ -27,138 +28,28 @@ import { AlertController } from '@ionic/angular';
   ]
 })
 export class FlavoursPage implements OnInit {
-  coffeeFlavours: CoffeeFlavour[] = [
-    {
-      id: '1',
-      name: 'Classic Espresso',
-      description: 'Rich and bold espresso with a perfect crema',
-      intensity: 5,
-      price: 3.50,
-      category: 'espresso',
-      origin: 'Italian Blend',
-      roastLevel: 'dark',
-      available: true
-    },
-    {
-      id: '2',
-      name: 'Vanilla Latte',
-      description: 'Smooth espresso with steamed milk and vanilla syrup',
-      intensity: 3,
-      price: 4.75,
-      category: 'latte',
-      origin: 'Colombian',
-      roastLevel: 'medium',
-      available: true
-    },
-    {
-      id: '3',
-      name: 'Caramel Cappuccino',
-      description: 'Frothy cappuccino with sweet caramel flavor',
-      intensity: 3,
-      price: 4.25,
-      category: 'cappuccino',
-      origin: 'Brazilian',
-      roastLevel: 'medium',
-      available: true
-    },
-    {
-      id: '4',
-      name: 'Mocha Delight',
-      description: 'Perfect blend of coffee and chocolate',
-      intensity: 4,
-      price: 5.00,
-      category: 'mocha',
-      origin: 'Ethiopian',
-      roastLevel: 'dark',
-      available: true
-    },
-    {
-      id: '5',
-      name: 'House Americano',
-      description: 'Smooth and clean coffee taste',
-      intensity: 4,
-      price: 3.25,
-      category: 'americano',
-      origin: 'House Blend',
-      roastLevel: 'medium',
-      available: true
-    },
-    {
-      id: '6',
-      name: 'Signature Blend',
-      description: 'Our exclusive specialty roast',
-      intensity: 5,
-      price: 6.50,
-      category: 'specialty',
-      origin: 'Single Origin Guatemala',
-      roastLevel: 'light',
-      available: false
-    }
-  ];
-
-  selectedCategory: CoffeeCategory | 'all' = 'all';
-  categories: (CoffeeCategory | 'all')[] = ['all', 'espresso', 'americano', 'latte', 'cappuccino', 'mocha', 'specialty'];
+  dbFlavours: FlavourRecord[] = [];
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private db: LocalDbService
   ) {
     addIcons({ star, logOut, cafe, refresh, add, createOutline, trashOutline });
   }
 
-  ngOnInit() {
-    // Component initialization logic
-  }
+  ngOnInit() {}
 
-  /**
-   * Get filtered coffee flavours based on selected category
-   */
-  get filteredFlavours(): CoffeeFlavour[] {
-    if (this.selectedCategory === 'all') {
-      return this.coffeeFlavours;
-    }
-    return this.coffeeFlavours.filter(flavour => flavour.category === this.selectedCategory);
-  }
-
-  /**
-   * Get available coffee flavours only
-   */
-  get availableFlavours(): CoffeeFlavour[] {
-    return this.filteredFlavours.filter(flavour => flavour.available);
-  }
-
-  /**
-   * Select a category filter
-   */
-  selectCategory(category: CoffeeCategory | 'all'): void {
-    this.selectedCategory = category;
-  }
-
-  /**
-   * Get intensity stars array
-   */
-  getIntensityStars(intensity: number): boolean[] {
-    return Array(5).fill(false).map((_, index) => index < intensity);
-  }
-
-  /**
-   * Format category name for display
-   */
-  formatCategoryName(category: CoffeeCategory | 'all'): string {
-    if (category === 'all') return 'All';
-    return category.charAt(0).toUpperCase() + category.slice(1);
+  ionViewWillEnter() {
+    this.dbFlavours = this.db.getFlavours();
   }
 
   /**
    * Handle coffee selection
    */
-  selectCoffee(flavour: CoffeeFlavour): void {
-    if (!flavour.available) return;
-    
-    // In a real app, this would navigate to an order page or add to cart
-    console.log('Selected coffee:', flavour);
-    // You could implement: this.router.navigate(['/order', flavour.id]);
+  selectCoffee(_flavour: FlavourRecord): void {
+    // Reserved for future flow (e.g., details page)
   }
 
   /**
@@ -179,19 +70,18 @@ export class FlavoursPage implements OnInit {
   }
 
   async onAdd(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Add Flavour',
-      message: 'This would open an add flavour flow. (demo)',
-      buttons: ['OK']
-    });
-    await alert.present();
+    this.router.navigateByUrl('/manage-flavours/manage-flavours');
   }
 
-  editFlavour(_: CoffeeFlavour): void {
-    // demo handler
+  editFlavour(flavour: FlavourRecord): void {
+    // For now navigate to create/edit screen; edit flow could prefill by id if from DB
+    this.router.navigateByUrl('/manage-flavours/manage-flavours');
   }
 
-  deleteFlavour(_: CoffeeFlavour): void {
-    // demo handler
+  deleteFlavour(flavour: FlavourRecord): void {
+    if (this.dbFlavours.find(f => f.id === flavour.id)) {
+      this.db.deleteFlavour(flavour.id);
+      this.dbFlavours = this.db.getFlavours();
+    }
   }
 }
