@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar-brown">
     <ion-buttons slot="start">
-      <ion-button class="circle-btn" fill="clear" routerLink="/flavours">
+      <ion-button class="circle-btn" fill="clear" (click)="goBack()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -21,9 +21,12 @@
       <label>BARCODE</label>
       <div class="barcode-row">
         <ion-input formControlName="barcode" placeholder=""></ion-input>
-        <button class="camera-btn" (click)="onPickPhoto()">
-          <ion-icon name="camera"></ion-icon>
-        </button>
+        <div class="photo-tile">
+          <img *ngIf="photoPreview" [src]="photoPreview" alt="preview" (click)="onPickPhoto()" />
+          <button *ngIf="!photoPreview" class="camera-btn" (click)="onPickPhoto()">
+            <ion-icon name="camera"></ion-icon>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -47,10 +50,6 @@
       <label>PODS PER BOX</label>
       <ion-input formControlName="podsPerBox" type="number"></ion-input>
     </div>
-  </div>
-
-  <div class="dev-instructions">
-    <span class="muted">DEV Instructions:</span> Click on the scan barcode icon in the header …
   </div>
 
   <div class="save-strip" slot="fixed">

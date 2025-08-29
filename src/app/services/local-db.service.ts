@@ -53,7 +53,8 @@ export class LocalDbService {
       pricePerBox: Number(record.pricePerBox) || 0,
       pricePerPod: Number(record.pricePerPod) || 0,
       podsPerBox: Number(record.podsPerBox) || 0,
-      photoName: record.photoName
+      photoName: record.photoName,
+      photoData: record.photoData
     };
     db.Flavours = [...db.Flavours, newRecord];
     this.writeDb(db);

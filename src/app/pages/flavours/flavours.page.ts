@@ -74,8 +74,7 @@ export class FlavoursPage implements OnInit {
   }
 
   editFlavour(flavour: FlavourRecord): void {
-    // For now navigate to create/edit screen; edit flow could prefill by id if from DB
-    this.router.navigateByUrl('/manage-flavours/manage-flavours');
+    this.router.navigateByUrl(`/manage-flavours/manage-flavours/${flavour.id}`);
   }
 
   deleteFlavour(flavour: FlavourRecord): void {

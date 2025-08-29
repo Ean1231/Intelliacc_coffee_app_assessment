@@ -37,7 +37,10 @@
         </div>
       </div>
       <div class="flavour-right">
-        <img src="assets/images/Coffee.png" alt="Coffee" />
+        <img *ngIf="flavour.photoData; else defaultImg" [src]="flavour.photoData" alt="Coffee" />
+        <ng-template #defaultImg>
+          <img src="assets/images/Coffee.png" alt="Coffee" />
+        </ng-template>
       </div>
     </div>
 
@@ -48,13 +51,4 @@
     </div>
   </div>
 
-  <div class="dev-instructions">
-    <div>
-      <span class="muted">DEV Instructions:</span>
-      The sync icon in the header will sync all application data. Click to see alert controller...
-    </div>
-    <div class="next-step">
-      <span class="muted">NEXT STEP:</span> Click on the add flavour icon in the header
-    </div>
-  </div>
 </ion-content>

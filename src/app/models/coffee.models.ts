@@ -45,4 +45,6 @@ export interface FlavourRecord {
   pricePerPod: number;
   podsPerBox: number;
   photoName?: string;
+  // Data URL or file URI for preview/storage in local DB
+  photoData?: string;
 }
