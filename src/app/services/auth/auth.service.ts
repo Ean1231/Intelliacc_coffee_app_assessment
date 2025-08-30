@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, catchError, tap, finalize } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, from } from 'rxjs';
+import { map, catchError, tap, finalize, switchMap } from 'rxjs/operators';
 import { UiStateService } from '../ui-state/ui-state.service';
 import { ErrorFactory } from '../../models/error.models';
 import { SOAP_CONFIG } from '../../config/soap.config';
 import { LoggerService } from '../logger/logger.service';
-
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly endpoint = '/coffee/Service.asmx';
+  private readonly endpoint = environment.soapEndpoint;
   private readonly loggedIn$ = new BehaviorSubject<boolean>(this.getFromStorage());
 
   constructor(
@@ -61,7 +62,17 @@ export class AuthService {
       'X-Handle-Own-Errors': 'true' // Auth service handles its own errors
     });
 
-    return this.http.post(this.endpoint, soap, { headers, responseType: 'text' }).pipe(
+    const isNative = Capacitor.isNativePlatform();
+    const request$ = isNative
+      ? from(CapacitorHttp.post({
+          url: this.endpoint,
+          headers: SOAP_CONFIG.HEADERS as any,
+          data: soap,
+          responseType: 'text'
+        })).pipe(map((res: any) => String(res.data)))
+      : this.http.post(this.endpoint, soap, { headers, responseType: 'text' });
+
+    return request$.pipe(
       map(xml => this.parseLoginResponse(xml)),
       tap(success => {
         this.updateAuthState(success);

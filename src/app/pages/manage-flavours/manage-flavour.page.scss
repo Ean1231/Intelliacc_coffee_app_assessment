@@ -44,6 +44,10 @@ ion-input {
   width: 72px;
   height: 72px;
   position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .photo-tile img {
@@ -57,10 +61,8 @@ ion-input {
   cursor: pointer;
 }
 
-.photo-tile .camera-btn {
-  position: absolute;
-  inset: 0;
-}
+.photo-tile .camera-btn { position: absolute; inset: 0; background: transparent; --padding-start: 0; --padding-end: 0; }
+.photo-tile ion-icon { font-size: 28px; pointer-events: none; }
 
 .camera-btn {
   width: 72px;

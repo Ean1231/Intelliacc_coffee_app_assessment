@@ -151,7 +151,7 @@ export class LoggerService {
    * Log authentication events
    */
   logAuthEvent(event: string, data?: any, requestId?: string): void {
-    this.log(LogLevel.INFO, `🔐 Auth: ${event}`, {
+    this.log(LogLevel.INFO, `Auth: ${event}`, {
       ...data,
       type: 'auth_event'
     }, requestId);

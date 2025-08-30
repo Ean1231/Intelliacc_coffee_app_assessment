@@ -115,13 +115,13 @@ describe('Error Models', () => {
         const apiError = ErrorFactory.createApiError('network', 'API failed');
 
         // Both should have required properties
-        expect(loginError).toHaveProperty('type');
-        expect(loginError).toHaveProperty('message');
-        expect(loginError).toHaveProperty('timestamp');
+        expect(loginError.type).toBeDefined();
+        expect(loginError.message).toBeDefined();
+        expect(loginError.timestamp).toBeDefined();
 
-        expect(apiError).toHaveProperty('type');
-        expect(apiError).toHaveProperty('message');
-        expect(apiError).toHaveProperty('timestamp');
+        expect(apiError.type).toBeDefined();
+        expect(apiError.message).toBeDefined();
+        expect(apiError.timestamp).toBeDefined();
 
         // Timestamps should be Date objects
         expect(loginError.timestamp).toBeInstanceOf(Date);

@@ -22,13 +22,12 @@
       <label>BARCODE</label>
       <div class="barcode-row">
         <ion-input formControlName="barcode" placeholder=""></ion-input>
-        <div class="photo-tile">
-          <img *ngIf="photoPreview" [src]="photoPreview" alt="preview" (click)="onPickPhoto()" />
-          <button *ngIf="!photoPreview" class="camera-btn" (click)="onPickPhoto()">
-            <ion-icon name="camera"></ion-icon>
-          </button>
+        <div class="photo-tile" (click)="onPickPhoto()" tappable>
+          <img *ngIf="photoPreview" [src]="photoPreview" alt="preview" />
+          <ion-icon *ngIf="!photoPreview" name="camera"></ion-icon>
         </div>
       </div>
+  
     </div>
 
     <div class="field">

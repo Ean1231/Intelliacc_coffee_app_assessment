@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  soapEndpoint: '/coffee/Service.asmx',
+  soapEndpoint: 'https://skynot.intelliacc.com/ws_IntelliCoffee/Service.asmx',
   soap: {
     timeout: 15000, // 15 seconds for production
     retryAttempts: 2,

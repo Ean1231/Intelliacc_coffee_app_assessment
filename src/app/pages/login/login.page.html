@@ -30,7 +30,7 @@
         <ion-icon [name]="show ? 'eye-off-outline' : 'eye-outline'" (click)="show = !show" class="eye-icon"></ion-icon>
       </div>
 
-      <button class="arrow-btn" type="submit"  [disabled]="form.invalid || (loadingState$ | async)?.isLoading">
+      <button class="arrow-btn" type="submit" [disabled]="form.invalid || (loadingState$ | async)?.isLoading">
         <img src="assets/images/Login_button.png" alt="Go" />
       </button>
       

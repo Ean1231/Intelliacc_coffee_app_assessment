@@ -55,19 +55,32 @@ export class ManageFlavourPage {
 
   async onScan(): Promise<void> {
     const code = await this.barcode.scan();
-    if (code) this.form.patchValue({ barcode: code });
+    if (code) {
+      this.form.patchValue({ barcode: code });
+      // Auto-populate existing record data if barcode already exists in local DB
+      const existing = this.db.getFlavours().find(f => f.barcode === code);
+      if (existing) {
+        this.form.patchValue({
+          name: existing.name,
+          pricePerBox: existing.pricePerBox,
+          pricePerPod: existing.pricePerPod,
+          podsPerBox: existing.podsPerBox,
+          photoName: existing.photoName || ''
+        });
+        this.photoPreview = existing.photoData;
+      }
+      // Ensure price per pod is recalculated after scan
+      this.recalculatePricePerPod();
+    }
   }
 
   async onPickPhoto(): Promise<void> {
-    const sheet = await this.actionSheet.create({
-      header: 'Add Photo',
-      buttons: [
-        { text: 'Take Photo', icon: 'camera', handler: () => this.capturePhoto('camera') },
-        { text: 'Choose from Gallery', icon: 'image', handler: () => this.capturePhoto('photos') },
-        { text: 'Cancel', role: 'cancel' }
-      ]
-    });
-    await sheet.present();
+    console.log('[ManageFlavour] onPickPhoto tapped');
+    const result = await this.image.pick('prompt');
+    if (result) {
+      this.photoPreview = result.dataUrl;
+      this.form.patchValue({ photoName: result.fileName });
+    }
   }
 
   private async capturePhoto(source: CameraSource): Promise<void> {
@@ -120,6 +133,20 @@ export class ManageFlavourPage {
         this.photoPreview = record.photoData;
       }
     }
+    // Auto-calc price per pod whenever pricePerBox or podsPerBox changes
+    this.form.get('pricePerBox')?.valueChanges.subscribe(() => this.recalculatePricePerPod());
+    this.form.get('podsPerBox')?.valueChanges.subscribe(() => this.recalculatePricePerPod());
+    // Initial calculation
+    this.recalculatePricePerPod();
+  }
+
+  private recalculatePricePerPod(): void {
+    const pricePerBoxRaw = this.form.get('pricePerBox')?.value;
+    const podsPerBoxRaw = this.form.get('podsPerBox')?.value;
+    const pricePerBox = Number(pricePerBoxRaw) || 0;
+    const podsPerBox = Number(podsPerBoxRaw) || 0;
+    const pricePerPod = podsPerBox > 0 ? Number((pricePerBox / podsPerBox).toFixed(2)) : 0;
+    this.form.patchValue({ pricePerPod }, { emitEvent: false });
   }
 }
 

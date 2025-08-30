@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader, 
@@ -10,6 +10,7 @@ import { addIcons } from 'ionicons';
 import { cafe, refresh, add, createOutline, trashOutline } from 'ionicons/icons';
 import { AlertController } from '@ionic/angular';
 import { LocalDbService } from '../../services/local-db.service';
+import { ToastService } from '../../services/toast.service';
 import { FlavourRecord } from '../../models/coffee.models';
 
 /**
@@ -31,7 +32,9 @@ export class FlavoursPage {
     private router: Router,
     private authService: AuthService,
     private alertController: AlertController,
-    private db: LocalDbService
+    private db: LocalDbService,
+    private zone: NgZone,
+    private toast: ToastService
   ) {
     addIcons({ cafe, refresh, add, createOutline, trashOutline });
   }
@@ -78,17 +81,11 @@ export class FlavoursPage {
 
   async deleteFlavour(flavour: FlavourRecord): Promise<void> {
     if (!this.dbFlavours.find(f => f.id === flavour.id)) return;
-    const alert = await this.alertController.create({
-      header: 'Delete flavour',
-      message: `Are you sure you want to delete "${flavour.name}"?`,
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        { text: 'Delete', role: 'destructive', handler: () => {
-          this.db.deleteFlavour(flavour.id);
-          this.dbFlavours = this.db.getFlavours();
-        }}
-      ]
+    // TEMP: Remove confirmation to verify mobile tap handling works
+    this.zone.run(() => {
+      this.db.deleteFlavour(flavour.id);
+      this.dbFlavours = this.db.getFlavours();
+      this.toast.success('Flavour deleted');
     });
-    await alert.present();
   }
 }
