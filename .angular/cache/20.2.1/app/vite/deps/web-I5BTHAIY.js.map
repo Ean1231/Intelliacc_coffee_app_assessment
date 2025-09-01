@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../node_modules/@capacitor/action-sheet/dist/esm/web.js"],
+  "sourcesContent": ["import { WebPlugin } from '@capacitor/core';\nexport class ActionSheetWeb extends WebPlugin {\n    async showActions(options) {\n        return new Promise((resolve, _reject) => {\n            let actionSheet = document.querySelector('pwa-action-sheet');\n            if (!actionSheet) {\n                actionSheet = document.createElement('pwa-action-sheet');\n                document.body.appendChild(actionSheet);\n            }\n            actionSheet.header = options.title;\n            actionSheet.cancelable = false;\n            actionSheet.options = options.options;\n            actionSheet.addEventListener('onSelection', async (e) => {\n                const selection = e.detail;\n                resolve({\n                    index: selection,\n                });\n            });\n        });\n    }\n}\n"],
+  "mappings": ";;;;;;;;AACO,IAAM,iBAAN,cAA6B,UAAU;AAAA,EACpC,YAAY,SAAS;AAAA;AACvB,aAAO,IAAI,QAAQ,CAAC,SAAS,YAAY;AACrC,YAAI,cAAc,SAAS,cAAc,kBAAkB;AAC3D,YAAI,CAAC,aAAa;AACd,wBAAc,SAAS,cAAc,kBAAkB;AACvD,mBAAS,KAAK,YAAY,WAAW;AAAA,QACzC;AACA,oBAAY,SAAS,QAAQ;AAC7B,oBAAY,aAAa;AACzB,oBAAY,UAAU,QAAQ;AAC9B,oBAAY,iBAAiB,eAAe,CAAO,MAAM;AACrD,gBAAM,YAAY,EAAE;AACpB,kBAAQ;AAAA,YACJ,OAAO;AAAA,UACX,CAAC;AAAA,QACL,EAAC;AAAA,MACL,CAAC;AAAA,IACL;AAAA;AACJ;",
+  "names": []
+}

@@ -3,17 +3,18 @@ import { LoadingOverlayComponent } from '../../components/loading-overlay/loadin
 import { BarcodeService } from '../../services/barcode.service';
 import { ImageService } from '../../services/image.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton, IonIcon, IonInput } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack, scan, camera, add, image as imageIcon } from 'ionicons/icons';
+import { arrowBack, scan, camera, add, image as imageIcon, checkmark } from 'ionicons/icons';
 import { LocalDbService } from '../../services/local-db.service';
 import { FlavourRecord } from '../../models/coffee.models';
-// Removed unused UI state imports to keep the component focused
 import { ActionSheetController } from '@ionic/angular';
-// Optional camera import (only available when Capacitor Camera is installed)
-// Use dynamic reference to avoid type errors when not installed
+import { ActionSheet } from '@capacitor/action-sheet';
+import { Capacitor } from '@capacitor/core';
+import { Dialog } from '@capacitor/dialog';
+import { AlertController } from '@ionic/angular'; 
 type CameraSource = 'prompt' | 'camera' | 'photos' | undefined;
 
 @Component({
@@ -27,12 +28,15 @@ type CameraSource = 'prompt' | 'camera' | 'photos' | undefined;
   ]
 })
 export class ManageFlavourPage {
-  form = this.fb.group({
-    barcode: ['', []],
-    name: ['', [Validators.required]],
-    pricePerBox: [0, [Validators.min(0)]],
-    pricePerPod: [0, [Validators.min(0)]],
-    podsPerBox: [0, [Validators.min(0)]],
+  isEditMode = false;
+
+  // Reactive form with conservative, non-intrusive validations
+  form: FormGroup = this.fb.group({
+    barcode: ['', [Validators.maxLength(64)]],
+    name: ['', [Validators.required, Validators.maxLength(100)]],
+    pricePerBox: [0, [Validators.min(0), Validators.max(1000000)]],
+    pricePerPod: [0, [Validators.min(0), Validators.max(1000000)]],
+    podsPerBox: [0, [Validators.min(0), Validators.max(100000)]],
     photoName: ['']
   });
   photoPreview: string | undefined;
@@ -44,57 +48,84 @@ export class ManageFlavourPage {
     private route: ActivatedRoute,
     private actionSheet: ActionSheetController,
     private barcode: BarcodeService,
-    private image: ImageService
+    private image: ImageService,
+    private alertCtrl: AlertController
   ) {
-    addIcons({ arrowBack, scan, camera, add, image: imageIcon });
+    addIcons({ arrowBack, scan, camera, add, image: imageIcon , checkmark });
   }
 
   goBack(): void {
     this.router.navigate(['flavours']);
   }
 
-  async onScan(): Promise<void> {
-    const code = await this.barcode.scan();
-    if (code) {
-      this.form.patchValue({ barcode: code });
-      // Auto-populate existing record data if barcode already exists in local DB
-      const existing = this.db.getFlavours().find(f => f.barcode === code);
-      if (existing) {
-        this.form.patchValue({
-          name: existing.name,
-          pricePerBox: existing.pricePerBox,
-          pricePerPod: existing.pricePerPod,
-          podsPerBox: existing.podsPerBox,
-          photoName: existing.photoName || ''
-        });
-        this.photoPreview = existing.photoData;
-      }
-      // Ensure price per pod is recalculated after scan
-      this.recalculatePricePerPod();
+  /**
+   * Scan a barcode and patch it into the form, then recalc price per pod
+   */
+async onScan(): Promise<void> {
+  const code = await this.barcode.scan();
+  if (code) {
+    // patch the scanned barcode
+    this.form.patchValue({ barcode: code });
+
+    // recalculate price per pod after scan
+    this.recalculatePricePerPod();
+  }
+}
+
+
+
+
+  /**
+   * Let the user pick a photo (camera/photos) via native ActionSheet when available
+   */
+async onPickPhoto(): Promise<void> {
+  const isNative = Capacitor.getPlatform() !== 'web';
+
+  if (isNative && Capacitor.isPluginAvailable('ActionSheet')) {
+    const res = await ActionSheet.showActions({
+      title: 'Add photo',
+      options: [
+        { title: 'Take a photo' },                    
+        { title: 'Choose from gallery' },            
+        { title: 'Cancel' },         
+      ],
+    });
+
+    if (res.index === 0) {
+      await this.pickFrom('camera');
+    } else if (res.index === 1) {
+      await this.pickFrom('photos');
     }
+    return;
   }
 
-  async onPickPhoto(): Promise<void> {
-    console.log('[ManageFlavour] onPickPhoto tapped');
-    const result = await this.image.pick('prompt');
-    if (result) {
-      this.photoPreview = result.dataUrl;
-      this.form.patchValue({ photoName: result.fileName });
-    }
-  }
+  const sheet = await this.actionSheet.create({
+    header: 'Add photo',
+    buttons: [
+      { text: 'Take a photo', icon: 'camera', handler: () => this.pickFrom('camera') },
+      { text: 'Choose from gallery', icon: 'image', handler: () => this.pickFrom('photos') },
+      { text: 'Cancel', role: 'cancel' },
+    ],
+  });
+  await sheet.present();
+}
 
-  private async capturePhoto(source: CameraSource): Promise<void> {
-    const result = await this.image.pick((source as any) === 'camera' ? 'camera' : 'photos');
-    if (result) {
-      this.photoPreview = result.dataUrl;
-      this.form.patchValue({ photoName: result.fileName });
-    }
+private async pickFrom(source: 'camera' | 'photos') {
+  const res = await this.image.pick(source);
+  if (res) {
+    this.photoPreview = res.dataUrl;
+    this.form.patchValue({ photoName: res.fileName });
   }
+}
 
+
+  /**
+   * Construct payload for DB with normalization (trim strings, coerce numbers)
+   */
   private buildPayload(value: Omit<FlavourRecord, 'id'>): Omit<FlavourRecord, 'id'> & { photoData?: string } {
     return {
-      barcode: value.barcode || '',
-      name: value.name || '',
+      barcode: (value.barcode || '').trim(),
+      name: (value.name || '').trim(),
       pricePerBox: Number(value.pricePerBox) || 0,
       pricePerPod: Number(value.pricePerPod) || 0,
       podsPerBox: Number(value.podsPerBox) || 0,
@@ -103,23 +134,60 @@ export class ManageFlavourPage {
     };
   }
 
-  onSave(): void {
-    if (this.form.invalid) return;
-    const value = this.form.value as Omit<FlavourRecord, 'id'>;
-    const id = this.route.snapshot.paramMap.get('id');
-    const payload = this.buildPayload(value);
+  /**
+   * Save flavour: update when editing, add when creating
+   */
+async onSave(): Promise<void> {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
 
-    if (id) {
-      this.db.updateFlavour(id, payload);
-    } else {
-      this.db.addFlavour(payload);
-    }
+  const value = this.form.value as Omit<FlavourRecord, 'id'>;
+  const id = this.route.snapshot.paramMap.get('id');
+  const payload = this.buildPayload(value);
+
+  if (id) {
+    this.db.updateFlavour(id, payload);
+    await this.showSuccessDialog('Edit Flavour', `Flavour ${value.name} has been edited successfully.`);
+  } else {
+    this.db.addFlavour(payload);
     this.router.navigate(['flavours']);
   }
+}
+
+private async showSuccessDialog(header: string, message: string): Promise<void> {
+  if (Capacitor.getPlatform() === 'web') {
+    // ✅ Use Ionic Alert on Web
+    const alert = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: [
+        {
+          text: 'OK',
+          handler: () => {
+            this.router.navigate(['flavours']); // navigate only after OK
+          }
+        }
+      ]
+    });
+    await alert.present();
+  } else {
+    // ✅ Use Capacitor Native Dialog on Mobile
+    await Dialog.alert({
+      title: header,
+      message: message,
+    });
+    this.router.navigate(['flavours']); // navigate after dismiss
+  }
+}
+
+
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
+      this.isEditMode = true; // Enable edit mode if ID is present
       const record = this.db.getFlavour(id);
       if (record) {
         this.form.patchValue({
@@ -140,6 +208,9 @@ export class ManageFlavourPage {
     this.recalculatePricePerPod();
   }
 
+  /**
+   * Calculate price per pod based on box price and pods per box
+   */
   private recalculatePricePerPod(): void {
     const pricePerBoxRaw = this.form.get('pricePerBox')?.value;
     const podsPerBoxRaw = this.form.get('podsPerBox')?.value;
@@ -148,6 +219,20 @@ export class ManageFlavourPage {
     const pricePerPod = podsPerBox > 0 ? Number((pricePerBox / podsPerBox).toFixed(2)) : 0;
     this.form.patchValue({ pricePerPod }, { emitEvent: false });
   }
+
+formatDecimal(controlName: string): void {
+  const control = this.form.get(controlName);
+  const value = control?.value;
+
+  if (value !== null && value !== undefined && value !== '') {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      control?.setValue(num.toFixed(2), { emitEvent: false });
+    }
+  }
+}
+
+
 }
 
 

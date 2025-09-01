@@ -37,18 +37,21 @@
         </div>
       </div>
       <div class="flavour-right">
-        <img *ngIf="flavour.photoData; else defaultImg" [src]="flavour.photoData" alt="Coffee" />
-        <ng-template #defaultImg>
+        @if (flavour.photoData) {
+          <img [src]="flavour.photoData" alt="Coffee" />
+        } @else {
           <img src="assets/images/Coffee.png" alt="Coffee" />
-        </ng-template>
+        }
       </div>
     </div>
 
-    <div *ngIf="dbFlavours.length === 0" class="empty-state">
-      <ion-icon name="cafe" size="large"></ion-icon>
-      <h2>No coffee available</h2>
-      <p>Sorry, no coffee flavours are available at the moment.</p>
-    </div>
+    @if (dbFlavours.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="cafe" size="large"></ion-icon>
+        <h2>No coffee available</h2>
+        <p>Sorry, no coffee flavours are available at the moment.</p>
+      </div>
+    }
   </div>
 
 </ion-content>

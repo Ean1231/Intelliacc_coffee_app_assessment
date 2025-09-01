@@ -5,7 +5,16 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>MANAGE FLAVOURS</ion-title>
+
+    <!-- Dynamic header -->
+    <ion-title>
+      @if (isEditMode) {
+        EDIT FLAVOUR
+      } @else {
+        MANAGE FLAVOURS
+      }
+    </ion-title>
+
     <ion-buttons slot="end">
       <ion-button class="circle-btn" fill="clear" (click)="onScan()">
         <ion-icon name="scan"></ion-icon>
@@ -23,42 +32,64 @@
       <div class="barcode-row">
         <ion-input formControlName="barcode" placeholder=""></ion-input>
         <div class="photo-tile" (click)="onPickPhoto()" tappable>
-          <img *ngIf="photoPreview" [src]="photoPreview" alt="preview" />
-          <ion-icon *ngIf="!photoPreview" name="camera"></ion-icon>
+          @if (photoPreview){
+          <img [src]="photoPreview" alt="preview" />
+          }
+          @if (!photoPreview){
+            <ion-icon name="camera"></ion-icon>
+          }
         </div>
       </div>
-  
+      @if (form.controls['barcode'].invalid && form.controls['barcode'].touched) {
+        <div class="error">Barcode is too long</div>
+      }
     </div>
 
     <div class="field">
       <label>FLAVOUR NAME</label>
       <ion-input formControlName="name" placeholder=""></ion-input>
-      <div class="error" *ngIf="form.controls.name.touched && form.controls.name.invalid">Name is required</div>
+      @if (form.controls['name'].touched && form.controls['name'].invalid) {
+        <div class="error">Name is required</div>
+      }
     </div>
 
     <div class="row">
       <div class="field">
-        <label>PRICE PER BOX</label>
-        <ion-input formControlName="pricePerBox" type="number"></ion-input>
-        <div class="error" *ngIf="form.controls.pricePerBox.invalid && form.controls.pricePerBox.touched">Enter a valid number</div>
-      </div>
-      <div class="field">
-        <label>PRICE PER POD</label>
-        <ion-input formControlName="pricePerPod" type="number"></ion-input>
-        <div class="error" *ngIf="form.controls.pricePerPod.invalid && form.controls.pricePerPod.touched">Enter a valid number</div>
-      </div>
+    <label>PRICE PER BOX</label>
+    <ion-input
+      formControlName="pricePerBox"
+      type="number"
+      (ionBlur)="formatDecimal('pricePerBox')">
+    </ion-input>
+    @if (form.controls['pricePerBox'].invalid && form.controls['pricePerBox'].touched) {
+      <div class="error">Enter a valid number</div>
+    }
+  </div>
+     <div class="field">
+    <label>PRICE PER POD</label>
+    <ion-input
+      formControlName="pricePerPod"
+      type="number"
+      (ionBlur)="formatDecimal('pricePerPod')">
+    </ion-input>
+    @if (form.controls['pricePerPod'].invalid && form.controls['pricePerPod'].touched) {
+      <div class="error">Enter a valid number</div>
+    }
+  </div>
     </div>
 
     <div class="field">
       <label>PODS PER BOX</label>
       <ion-input formControlName="podsPerBox" type="number"></ion-input>
-      <div class="error" *ngIf="form.controls.podsPerBox.invalid && form.controls.podsPerBox.touched">Enter a valid number</div>
+      @if (form.controls['podsPerBox'].invalid && form.controls['podsPerBox'].touched) {
+        <div class="error">Enter a valid number</div>
+      }
     </div>
   </div>
 
-  <div class="save-strip" slot="fixed">
+ <div class="save-strip" slot="fixed">
     <button class="save-btn" (click)="onSave()">
-      <ion-icon name="add"></ion-icon>
+      <ion-icon [name]="isEditMode ? 'checkmark' : 'add'"></ion-icon>
     </button>
   </div>
 </ion-content>
