@@ -15,6 +15,7 @@ import { ActionSheet } from '@capacitor/action-sheet';
 import { Capacitor } from '@capacitor/core';
 import { Dialog } from '@capacitor/dialog';
 import { AlertController } from '@ionic/angular'; 
+import { NgZone } from '@angular/core';
 type CameraSource = 'prompt' | 'camera' | 'photos' | undefined;
 
 @Component({
@@ -49,7 +50,8 @@ export class ManageFlavourPage {
     private actionSheet: ActionSheetController,
     private barcode: BarcodeService,
     private image: ImageService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private zone: NgZone
   ) {
     addIcons({ arrowBack, scan, camera, add, image: imageIcon , checkmark });
   }
@@ -64,11 +66,10 @@ export class ManageFlavourPage {
 async onScan(): Promise<void> {
   const code = await this.barcode.scan();
   if (code) {
-    // patch the scanned barcode
-    this.form.patchValue({ barcode: code });
-
-    // recalculate price per pod after scan
-    this.recalculatePricePerPod();
+    this.zone.run(() => {
+      this.form.patchValue({ barcode: code });
+      this.recalculatePricePerPod();
+    });
   }
 }
 
